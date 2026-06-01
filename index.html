@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>아이디룩 · 생성형 AI 실무 프롬프트 툴킷</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Playfair+Display:wght@600;700;800;900&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f7f5f2;
+        --surface: #ffffff;
+        --surface-hover: #faf6f0;
+        --primary: #1a1a1a;
+        --primary-light: #f0ece5;
+        --primary-dark: #000000;
+        --accent: #b08d57;
+        --accent-light: #f3ead9;
+        --text: #1a1a1a;
+        --text-secondary: #6b6457;
+        --border: #e3ddd2;
+        --copied-bg: #f3ead9;
+        --copied-border: #b08d57;
+        --shadow-sm: 0 1px 3px rgba(26, 26, 26, 0.05);
+        --shadow-md: 0 4px 16px rgba(26, 26, 26, 0.08);
+        --shadow-lg: 0 8px 32px rgba(26, 26, 26, 0.16);
+        --radius: 12px;
+        --radius-lg: 20px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Noto Sans KR", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+      header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+      .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 66px; }
+      .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+      .logo .brand { font-family: "Playfair Display", serif; font-weight: 800; font-size: 20px; letter-spacing: 1px; color: var(--primary-dark); }
+      .logo .sep { width: 1px; height: 22px; background: var(--border); }
+      .logo .sub { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 0.3px; }
+      .hero { max-width: 1100px; margin: 0 auto; padding: 52px 24px 40px; }
+      .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--accent-light); color: #8a6d3b; border-radius: 100px; font-size: 13px; font-weight: 700; margin-bottom: 18px; letter-spacing: 0.3px; }
+      .hero h1 { font-family: "Playfair Display", "Noto Sans KR", serif; font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.25; color: var(--primary-dark); margin-bottom: 14px; letter-spacing: -0.3px; }
+      .hero h1 span { color: var(--accent); }
+      .hero p { font-size: 16px; color: var(--text-secondary); max-width: 820px; word-break: keep-all; }
+      .content { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+      .section-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); transition: box-shadow .3s; margin-bottom: 32px; }
+      .section-card:hover { box-shadow: var(--shadow-md); }
+      .section-header { padding: 24px 28px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg,#fdfcfa,var(--surface)); }
+      .section-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+      .section-icon.camel { background: var(--accent-light); }
+      .section-icon.gray { background: #f1efea; }
+      .section-header-text h2 { font-family: "Outfit","Noto Sans KR",sans-serif; font-size: 18px; font-weight: 700; color: var(--primary-dark); }
+      .section-header-text p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; word-break: keep-all; }
+      .section-body { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+      .link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; padding: 8px 0; }
+      .link-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: var(--text); font-weight: 600; font-size: 15px; transition: all .2s ease-in-out; }
+      .link-item:hover { border-color: var(--accent); background: var(--surface-hover); color: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+      .link-item svg { width: 18px; height: 18px; color: var(--text-secondary); }
+      .prompt-item { position: relative; display: flex; align-items: flex-start; padding: 16px 56px 16px 16px; background: var(--bg); border: 1.5px solid transparent; border-radius: var(--radius); cursor: pointer; transition: all .2s ease-in-out; font-size: 15px; line-height: 1.7; color: var(--text); user-select: none; }
+      .prompt-item:hover { border-color: var(--border); background: var(--surface-hover); transform: translateX(4px); }
+      .prompt-item.copied { background: var(--copied-bg); border-color: var(--copied-border); }
+      .prompt-text { flex: 1; white-space: pre-wrap; word-break: keep-all; }
+      .prompt-num { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 30px; padding: 0 8px; background: var(--primary); color: #fff; border-radius: 8px; font-family: "Outfit",sans-serif; font-size: 14px; font-weight: 700; flex-shrink: 0; margin-right: 14px; margin-top: 2px; }
+      .copy-indicator { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); pointer-events: none; }
+      .prompt-item:hover .copy-indicator { color: var(--accent); }
+      .prompt-item.copied .copy-indicator { color: var(--accent); }
+      .copy-indicator svg { width: 20px; height: 20px; }
+      .copy-indicator .check-icon { display: none; }
+      .prompt-item.copied .copy-indicator .copy-icon { display: none; }
+      .prompt-item.copied .copy-indicator .check-icon { display: block; }
+      .prompt-container { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+      .prompt-container:last-child { margin-bottom: 0; }
+      .prompt-note { font-size: 14px; font-weight: 600; color: var(--primary-dark); margin-left: 4px; margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; word-break: keep-all; }
+      .prompt-note .badge { background: var(--primary); color: #fff; padding: 4px 11px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+      .prompt-note .badge.gray { background: #cdb38a; color: #3d2f17; }
+      .concept-label { font-size: 14px; font-weight: 700; color: var(--primary-dark); margin: 14px 0 2px 4px; display: flex; align-items: center; }
+      .concept-label::before { content: ''; display: inline-block; width: 4px; height: 14px; background-color: var(--accent); border-radius: 2px; margin-right: 8px; }
+      .tip-box { font-size: 13.5px; color: var(--text-secondary); background: var(--primary-light); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 16px; margin: 8px 4px 4px; word-break: keep-all; line-height: 1.65; }
+      .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--primary-dark); color: #fff; padding: 14px 28px; border-radius: 100px; font-size: 15px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: all .35s cubic-bezier(.4,0,.2,1); z-index: 999; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      footer { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; color: var(--text-secondary); font-size: 13px; text-align: center; }
+      @media (max-width: 768px) {
+        .header-inner { height: 58px; }
+        .logo .brand { font-size: 17px; }
+        .logo .sub { display: none; }
+        .hero { padding: 36px 16px 24px; }
+        .content { padding: 0 16px 60px; }
+        .section-header { padding: 20px 20px 16px; }
+        .section-body { padding: 14px; }
+        .prompt-item { padding: 14px 48px 14px 14px; font-size: 14px; }
+        .prompt-num { min-width: 28px; height: 26px; font-size: 12px; margin-right: 12px; }
+      }
+      @keyframes copyPulse { 0% { box-shadow: 0 0 0 0 rgba(176,141,87,.35); } 70% { box-shadow: 0 0 0 8px rgba(176,141,87,0); } 100% { box-shadow: 0 0 0 0 rgba(176,141,87,0); } }
+      .prompt-item.just-copied { animation: copyPulse .6s ease; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <a href="#" class="logo" onclick="return false;">
+          <span class="brand">I.D. LOOK LTD.</span>
+          <span class="sep"></span>
+          <span class="sub">생성형 AI 실무 프롬프트 툴킷</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="hero-badge">✦ AI Powered Work · 아이디룩 임직원 교육</div>
+      <h1>아이디룩 생성형 AI 실무 — <span>프롬프트 툴킷</span></h1>
+      <p>교육 실습에 바로 활용할 수 있는 프롬프트 모음입니다. 프롬프트를 클릭하면 클립보드에 복사되어 ChatGPT · Claude · Gemini · NotebookLM 등에 바로 붙여넣기 할 수 있습니다.</p>
+    </div>
+
+    <div class="content">
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon gray">🔗</div>
+          <div class="section-header-text">
+            <h2>Ⅰ. 접속할 사이트</h2>
+            <p>실습에 사용하는 주요 생성형 AI 플랫폼 링크</p>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="link-grid">
+            <a href="https://chat.openai.com" target="_blank" class="link-item">ChatGPT<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+            <a href="https://claude.ai/new" target="_blank" class="link-item">Claude<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+            <a href="https://gemini.google.com" target="_blank" class="link-item">Gemini<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+            <a href="https://aistudio.google.com/" target="_blank" class="link-item">Google AI Studio<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+            <a href="https://notebooklm.google.com" target="_blank" class="link-item">NotebookLM<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon camel">💬</div>
+          <div class="section-header-text">
+            <h2>Ⅱ. GPT 실전 활용 — 텍스트·업무 자동화</h2>
+            <p>프롬프트 4원칙부터 보고서·이메일·기획서·회의록·SNS·이미지 분석까지</p>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">프롬프트 4원칙</span> 명확성·맥락·예시·반복개선 (GOOD 예시는 클릭하면 복사)</div>
+            <div class="concept-label">① 명확성 (Clarity)</div>
+            <div class="prompt-item" data-num="1" data-prompt="거래처 담당자에게 납기 3일 지연을 알리는 이메일, 200자, 사과+대안 포함"><span class="prompt-text"></span></div>
+            <div class="concept-label">② 맥락 제공 (Context)</div>
+            <div class="prompt-item" data-num="2" data-prompt="나는 HR SaaS 스타트업 마케터. 중소기업 인사담당자 대상 SNS 콘텐츠 3개 제안해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">③ 예시 활용 (Examples)</div>
+            <div class="prompt-item" data-num="3" data-prompt="아래 스타일로 제목 5개 만들어줘 / 예시: '당신이 몰랐던 GPT 활용법'"><span class="prompt-text"></span></div>
+            <div class="concept-label">④ 반복 개선 (Iteration)</div>
+            <div class="prompt-item" data-num="4" data-prompt="3번째 단락을 더 간결하게 줄이고, 마지막 문장은 행동 유도 문구로 바꿔줘"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">범용 템플릿</span> [ ] 안의 내용을 본인 상황에 맞게 바꿔서 사용</div>
+            <div class="concept-label">1. 역할 기반 기본 템플릿</div>
+            <div class="prompt-item" data-num="5" data-prompt="너는 [직책/역할]이야.&#10;[배경 상황]을 고려해서&#10;[결과물]을 [형식]으로 작성해줘.&#10;조건: [길이/톤/포함 요소]"><span class="prompt-text"></span></div>
+            <div class="concept-label">2. 데이터 분석 템플릿</div>
+            <div class="prompt-item" data-num="6" data-prompt="아래 데이터를 분석해줘.&#10;[데이터 붙여넣기]&#10;1. 핵심 인사이트 3개 (불릿)&#10;2. 이상치 또는 주목할 수치&#10;3. 다음 액션 추천"><span class="prompt-text"></span></div>
+            <div class="concept-label">3. 생각의 트리(ToT) — 복잡한 의사결정</div>
+            <div class="prompt-item" data-num="7" data-prompt="[고민 입력]&#10;지금부터 세 가지 전략으로 동시에 생각해줘.&#10;각 전략의 장점·단점·비용을 평가하고&#10;가장 비합리적인 안은 가지치기해서&#10;최종 1안 추천해."><span class="prompt-text"></span></div>
+            <div class="concept-label">4. 자기 성찰(Self-Critique) — 내 글 업그레이드</div>
+            <div class="prompt-item" data-num="8" data-prompt="[내 글 붙여넣기]&#10;객관적 비평가 입장에서 가장 치명적인 논리 약점이나 지루한 부분을 정확히 지적해.&#10;그리고 그 문제를 해결한 최종 개선 버전을 제출해."><span class="prompt-text"></span></div>
+            <div class="concept-label">5. 아이디어 발산 템플릿</div>
+            <div class="prompt-item" data-num="9" data-prompt="너는 창의적인 전략 컨설턴트야.&#10;[주제/상황]에 대해&#10;완전히 다른 관점의 아이디어 5개를 제안해줘.&#10;각 아이디어마다 실행 가능성 점수(1-10) 포함"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">보고서 자동 생성</span> 주간·월간/분기 보고서 초안</div>
+            <div class="concept-label">주간 업무 보고서</div>
+            <div class="prompt-item" data-num="10" data-prompt="너는 [팀명] 팀의 [직책]이야.&#10;아래 이번 주 업무 내용을 보고서로 정리해줘.&#10;[업무 내용 붙여넣기]&#10;&#10;형식:&#10;1. 이번 주 주요 성과 (3개)&#10;2. 진행 중 업무 현황&#10;3. 다음 주 계획&#10;4. 이슈 및 요청사항&#10;&#10;톤: 간결하고 팩트 중심, 300자 이내"><span class="prompt-text"></span></div>
+            <div class="concept-label">성과 분석 보고서 — 월간·분기</div>
+            <div class="prompt-item" data-num="11" data-prompt="아래 데이터를 바탕으로 [월/분기] 성과 보고서를 작성해줘.&#10;[데이터 붙여넣기]&#10;&#10;포함 항목:&#10;1. 핵심 KPI 달성 현황 (표 형식)&#10;2. 전월 대비 증감률 분석&#10;3. 잘된 점 &amp; 개선 필요 점&#10;4. 다음 달 목표 및 전략"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">이메일 초안 자동 생성</span> 상황별 이메일 템플릿</div>
+            <div class="concept-label">사과·양해 이메일</div>
+            <div class="prompt-item" data-num="12" data-prompt="너는 [회사명] [직책]이야.&#10;[상황: 납기 지연 / 오류 발생 / 약속 변경]으로 [수신자]에게 사과 이메일을 써줘.&#10;- 사과 + 경위 설명&#10;- 해결책 또는 대안 제시&#10;- 재발 방지 약속&#10;- 200자, 정중한 톤"><span class="prompt-text"></span></div>
+            <div class="concept-label">협력 요청 이메일</div>
+            <div class="prompt-item" data-num="13" data-prompt="너는 [회사명] [직책]이야.&#10;[협력사/외부 담당자]에게 [목적: 미팅 요청 / 자료 요청 / 견적 문의]하는 이메일을 써줘.&#10;- 요청 배경 간략 설명&#10;- 구체적 요청 사항&#10;- 일정 제안 또는 마감 명시&#10;- 250자, 친근하고 프로페셔널한 톤"><span class="prompt-text"></span></div>
+            <div class="concept-label">내부 공지 이메일</div>
+            <div class="prompt-item" data-num="14" data-prompt="너는 [팀/부서명] 담당자야.&#10;전 직원에게 [공지 내용: 시스템 점검 / 정책 변경 / 이벤트 안내]를 알리는 이메일을 써줘.&#10;- 변경 일시 명확히&#10;- 영향받는 대상&#10;- 준비사항 또는 주의사항&#10;- 150자, 간결하고 명확한 톤"><span class="prompt-text"></span></div>
+            <div class="concept-label">이메일 만능 템플릿</div>
+            <div class="prompt-item" data-num="15" data-prompt="너는 [회사명] 소속 [직책]이야.&#10;[수신자]에게 [전달 목적]을 알리는 이메일을 작성해줘.&#10;조건:&#10;- 톤: [정중한 / 친근한 / 단호한]&#10;- 길이: [100 / 200 / 300]자 내외&#10;- 포함 요소: 사과, 대안, 마감 일정&#10;- 마지막에 행동 유도 문구 포함"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">기획서 &amp; 제안서</span> 순서대로 3단계 실행 → 완성된 기획서</div>
+            <div class="concept-label">STEP 1 — 기획서 목차 생성</div>
+            <div class="prompt-item" data-num="16" data-prompt="[프로젝트명]: [한 줄 설명]&#10;[목적]: [달성하려는 것]&#10;[대상]: [누구를 위한 기획인지]&#10;위 내용을 바탕으로 전문적인 기획서 목차를 작성해줘.&#10;각 챕터에 예상 분량(페이지) 포함."><span class="prompt-text"></span></div>
+            <div class="concept-label">STEP 2 — 챕터별 본문 초안</div>
+            <div class="prompt-item" data-num="17" data-prompt="목차: [STEP 1 결과 붙여넣기]&#10;위 목차 중 [챕터명]의 본문을 작성해줘.&#10;조건:&#10;- 논리적 흐름 (문제→원인→해결)&#10;- 구체적 수치·근거 포함&#10;- 500자 내외"><span class="prompt-text"></span></div>
+            <div class="concept-label">STEP 3 — 경영진 보고용 1페이지 요약</div>
+            <div class="prompt-item" data-num="18" data-prompt="[기획서 전체 내용 붙여넣기]&#10;경영진 보고용 1페이지 요약을 작성해줘.&#10;포함:&#10;- 핵심 문제 (1줄)&#10;- 제안 솔루션 (2줄)&#10;- 기대 효과 (수치 포함)&#10;- 필요 예산·일정 (표)"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">회의록 &amp; 요약</span> Clova Note·Whisper로 녹취 → 텍스트 변환 후 사용</div>
+            <div class="concept-label">회의록 생성</div>
+            <div class="prompt-item" data-num="19" data-prompt="아래 회의 녹취록을 회의록으로 정리해줘.&#10;[녹취록 붙여넣기]&#10;&#10;형식:&#10;■ 회의 일시: [자동 추출]&#10;■ 참석자: [자동 추출]&#10;■ 안건별 논의 내용 (요약)&#10;■ 결정 사항&#10;■ 액션 아이템 (담당자 | 내용 | 마감일) 표"><span class="prompt-text"></span></div>
+            <div class="concept-label">후속 이메일</div>
+            <div class="prompt-item" data-num="20" data-prompt="[회의록 내용 붙여넣기]&#10;위 회의 내용을 참석자에게 발송할 후속 이메일로 작성해줘.&#10;- 회의 요약 (3줄)&#10;- 결정 사항&#10;- 각자 액션 아이템 (개인별 항목만)&#10;- 다음 회의 일정 안내"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">SNS 콘텐츠 &amp; 마케팅 카피</span> 링크드인·인스타·광고 카피</div>
+            <div class="concept-label">LinkedIn 포스트</div>
+            <div class="prompt-item" data-num="21" data-prompt="너는 B2B 마케터야.&#10;[주제/인사이트]에 대한 LinkedIn 포스트를 작성해줘.&#10;- 첫 줄: 강력한 훅 문장&#10;- 본문: 3가지 핵심 포인트&#10;- 마무리: 질문으로 끝내기&#10;- 해시태그 5개&#10;- 300자 내외, 전문적 톤"><span class="prompt-text"></span></div>
+            <div class="concept-label">인스타그램 캡션 — 3가지 버전</div>
+            <div class="prompt-item" data-num="22" data-prompt="[제품/서비스/주제]에 대한 인스타그램 캡션 3가지 버전을 작성해줘.&#10;버전 A: 감성적·스토리텔링&#10;버전 B: 정보 전달·팩트 중심&#10;버전 C: 유머·위트 있는 톤&#10;각 버전마다 이모지 + 해시태그 포함"><span class="prompt-text"></span></div>
+            <div class="concept-label">광고 카피 — 헤드라인·서브카피·CTA</div>
+            <div class="prompt-item" data-num="23" data-prompt="[제품명]: [한 줄 설명]&#10;[타겟]: [대상 고객]&#10;[핵심 혜택]: [USP]&#10;위 정보로 광고 카피를 작성해줘.&#10;- 헤드라인 (15자 이내) 3개&#10;- 서브카피 (50자) 3개&#10;- CTA 문구 3개&#10;각각 강조점이 다른 방향으로"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">이미지 분석 &amp; 멀티모달</span> 이미지를 ChatGPT·Claude에 첨부한 뒤 입력</div>
+            <div class="concept-label">차트·그래프 분석</div>
+            <div class="prompt-item" data-num="24" data-prompt="[이미지 첨부]&#10;이 차트에서 다음을 분석해줘:&#10;1. 핵심 수치 추출 (표 형식)&#10;2. 가장 주목할 변화 포인트&#10;3. 경영진 보고용 1줄 요약"><span class="prompt-text"></span></div>
+            <div class="concept-label">제품·마케팅 이미지 분석</div>
+            <div class="prompt-item" data-num="25" data-prompt="[이미지 첨부]&#10;이 제품 이미지를 분석해서:&#10;1. 제품 특징 3가지&#10;2. 타겟 고객 예상&#10;3. 마케팅 카피 3개 버전&#10;을 작성해줘."><span class="prompt-text"></span></div>
+            <div class="concept-label">경쟁사 화면 캡처 분석</div>
+            <div class="prompt-item" data-num="26" data-prompt="[캡처 이미지 첨부]&#10;이 경쟁사 화면에서:&#10;1. 핵심 기능/특징 목록&#10;2. 가격 정책 분석&#10;3. 우리 제품과의 차별점&#10;을 정리해줘."><span class="prompt-text"></span></div>
+            <div class="concept-label">명함·문서 OCR — 텍스트 추출</div>
+            <div class="prompt-item" data-num="27" data-prompt="[이미지 첨부]&#10;이 이미지의 텍스트를 모두 추출해줘.&#10;추출 후:&#10;- 연락처 정보는 표로 정리&#10;- 회사명·담당자명 강조"><span class="prompt-text"></span></div>
+            <div class="concept-label">PDF 문서 핵심 추출 (Claude)</div>
+            <div class="prompt-item" data-num="28" data-prompt="이 문서의 핵심 내용을 3가지로 요약하고, 가장 중요한 수치를 표로 정리해줘."><span class="prompt-text"></span></div>
+            <div class="tip-box">민감정보 마스킹: 이름→[이름], 전화번호→[번호], 회사명→[A사]. 기업 기밀은 최소 ChatGPT Team 플랜 이상 권장(데이터 학습 기본 OFF).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon camel">🎨</div>
+          <div class="section-header-text">
+            <h2>Ⅲ. 생성형 AI 이미지 생성 — SCLS 공식</h2>
+            <p>SCLS(Subject·Context·Lighting·Style) 기반 실전 이미지 프롬프트</p>
+          </div>
+        </div>
+        <div class="section-body">
+            <div class="tip-box">파라미터(--ar, --q, --v)는 Midjourney 전용. DALL-E·Ideogram 사용 시 파라미터는 제외하고 입력.</div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">완성형 SCLS 예시</span> 인물 + 여백 있는 공간</div>
+            <div class="prompt-item" data-num="29" data-prompt="30대의 전문직 여성, 자신감 있게 미소 짓고 있는,&#10;현대적인 사무실 안에서 깔끔한 책상, 왼쪽에 여백이 있는,&#10;창가에서 들어오는 부드러운 빛, 일몰 직전의 따뜻한 색조,&#10;실사 같은(사진 같은), 8k 화질, 전문가가 촬영한 사진 느낌의,&#10;--no 흐릿함, 워터마크, 텍스트, 과도한 터치, 만화 같은 느낌&#10;--ar 16:9 --q 2 --v 7"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">BAD vs GOOD</span> GOOD 예시는 클릭하면 복사</div>
+            <div class="concept-label">인물 사진 (GOOD)</div>
+            <div class="prompt-item" data-num="30" data-prompt="자신감 넘치는 한국 여성, 30대, 비즈니스 정장, 미소 짓고 있는,&#10;깔끔한 화이트톤의 사무실 배경, 스튜디오 조명, 실사 같은(사진처럼 정교한)&#10;--ar 3:2"><span class="prompt-text"></span></div>
+            <div class="concept-label">제품 이미지 (GOOD)</div>
+            <div class="prompt-item" data-num="31" data-prompt="프리미엄 무선 헤드폰, 흰색 배경 위에 공중 부양해 있는(떠있는),&#10;부드러운 그림자 제품사진(제품 촬영 스타일), 8k 화질, 미니멀리스트&#10;--ar 1:1 --q 2"><span class="prompt-text"></span></div>
+            <div class="concept-label">썸네일 (GOOD)</div>
+            <div class="prompt-item" data-num="32" data-prompt="유튜브 썸네일, 굵은 한국어 텍스트를 넣을 수 있는 왼쪽 여백,&#10;극적인 테크 느낌의 배경, 블루 그라데이션, 높은 대비, 전문가 수준의&#10;--ar 16:9"><span class="prompt-text"></span></div>
+            <div class="concept-label">인포그래픽 (GOOD)</div>
+            <div class="prompt-item" data-num="33" data-prompt="깔끔한 인포그래픽, 청색과 백색 조합의 색상 구성, 아이콘들, 미니멀한,&#10;비즈니스 스타일의 5단계 작업 흐름도, 플랫 디자인&#10;--ar 16:9"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">업무용 유형별 — 인포그래픽</span></div>
+            <div class="concept-label">기본 인포그래픽</div>
+            <div class="prompt-item" data-num="34" data-prompt="5단계 작업 흐름도, 숫자가 적힌 아이콘들, 평면적이고 깔끔한 디자인 스타일,&#10;청색과 백색 조합의 색상 구성, 전문적인 비즈니스 스타일의, 사진 제외&#10;--ar 16:9"><span class="prompt-text"></span></div>
+            <div class="concept-label">텍스트 영역 확보형 인포그래픽</div>
+            <div class="prompt-item" data-num="35" data-prompt="글자를 얹을 수 있도록 여백을 남겨둔, 깔끔한 배경, 높은 대비,&#10;깔끔하고 미니멀한 인포그래픽, 벡터 아트, 전문가 수준의&#10;--ar 16:9"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">업무용 유형별 — 썸네일</span></div>
+            <div class="concept-label">클릭률 높은 유튜브 썸네일</div>
+            <div class="prompt-item" data-num="36" data-prompt="유튜브 썸네일, 왼쪽 3분의 1 영역에 굵은 텍스트를 넣을 수 있는 여백, 오른쪽에 극적인 배경,&#10;높은 대비, 깜짝 놀란 얼굴 표정, (손가락으로) 가리키는 몸짓, 시선을 사로잡는&#10;--ar 16:9 --q 2"><span class="prompt-text"></span></div>
+            <div class="concept-label">AI 강의 썸네일 — 실습용</div>
+            <div class="prompt-item" data-num="37" data-prompt="AI 강의 유튜브 썸네일, 굵은 글씨, 왼쪽 여백, 극적인 기술 배경,&#10;파란색 그라데이션, 높은 대비, 전문적인 느낌&#10;--ar 16:9"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">업무용 유형별 — 마케팅 이미지</span></div>
+            <div class="concept-label">SNS 광고 이미지</div>
+            <div class="prompt-item" data-num="38" data-prompt="제품 라이프스타일 컷, 동경을 자아내는 분위기, 따뜻한 자연광,&#10;브랜드의 상징적인 포인트 색상, 깔끔한&#10;--ar 1:1"><span class="prompt-text"></span></div>
+            <div class="concept-label">배너 / 카드뉴스</div>
+            <div class="prompt-item" data-num="39" data-prompt="현대적인 카드뉴스 디자인, 한국 기업 스타일(깔끔하고 단정한 느낌),&#10;왼쪽에 텍스트를 넣을 수 있는 여백, 그라데이션 배경&#10;--ar 4:5"><span class="prompt-text"></span></div>
+            <div class="concept-label">이벤트 포스터</div>
+            <div class="prompt-item" data-num="40" data-prompt="이벤트(행사) 포스터, 굵고 강렬한 글자(타이포그래피)를 넣을 수 있는 공간,&#10;극적인 조명 효과, 축제 분위기의&#10;--ar 9:16 --q 2"><span class="prompt-text"></span></div>
+            <div class="concept-label">마케팅 카드 — 한국 기업 스타일</div>
+            <div class="prompt-item" data-num="41" data-prompt="한국 기업 스타일의 소셜 뉴스 카드, 현대적인 디자인,&#10;왼쪽에 텍스트를 넣을 수 있는 여백, 브랜드의 상징적인 포인트 색상, 깔끔한 화이트톤&#10;--ar 4:5"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">업무용 유형별 — 발표 배경</span> no text 명시 필수</div>
+            <div class="concept-label">기본 발표 배경</div>
+            <div class="prompt-item" data-num="42" data-prompt="추상적인 테크 느낌의 배경, 부드러운 파란색 그라데이션, 미니멀한, 전문가 수준의, 텍스트 없음&#10;--ar 16:9"><span class="prompt-text"></span></div>
+            <div class="concept-label">섹션 구분 슬라이드 배경</div>
+            <div class="prompt-item" data-num="43" data-prompt="섹션 분할 슬라이드 배경, 대담하고 강력한 기하학적 문양(도형), 브랜드 컬러가 지배적인&#10;--ar 16:9"><span class="prompt-text"></span></div>
+            <div class="concept-label">데이터 강조 배경</div>
+            <div class="prompt-item" data-num="44" data-prompt="데이터 시각화 느낌의 배경, 네트워크 노드(점과 선으로 연결된 망 구조), 깔끔한 다크 테마, 은은한&#10;--ar 16:9"><span class="prompt-text"></span></div>
+            <div class="concept-label">발표 배경 — 실습용</div>
+            <div class="prompt-item" data-num="45" data-prompt="추상적인 테크 느낌의 배경, 부드러운 블루 그라데이션, 네트워크 노드,&#10;단순하고 깔끔한, 전문가 수준의, 텍스트 없음, 은은한&#10;--ar 16:9 --q 2"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">이미지 수정·변환</span> 스타일·배경·색감·요소 추가·브랜드 일관성</div>
+            <div class="concept-label">사진 → 일러스트/벡터 변환 (Midjourney Remix·Firefly)</div>
+            <div class="prompt-item" data-num="46" data-prompt="플랫 디자인 일러스트레이션, 벡터 아트 스타일, 구도 유지, 텍스트 없음"><span class="prompt-text"></span></div>
+            <div class="concept-label">Adobe Firefly 실습용 — 스타일 변환</div>
+            <div class="prompt-item" data-num="47" data-prompt="flat design illustration, vector art style"><span class="prompt-text"></span></div>
+            <div class="concept-label">배경 제거 후 새 배경 교체 (Remove.bg → Canva/DALL-E Edit)</div>
+            <div class="prompt-item" data-num="48" data-prompt="배경 제거, 깔끔한 화이트 스튜디오 배경으로 교체, 피사체는 유지"><span class="prompt-text"></span></div>
+            <div class="concept-label">배경 교체 — 실습용</div>
+            <div class="prompt-item" data-num="49" data-prompt="modern office interior, natural light"><span class="prompt-text"></span></div>
+            <div class="concept-label">색감 보정 (Midjourney Vary·Canva AI)</div>
+            <div class="prompt-item" data-num="50" data-prompt="따뜻한 일몰 직전의 황금빛 색보정 적용, 채도/생동감 증가, 영화 속 장면 같은 필름 룩 느낌"><span class="prompt-text"></span></div>
+            <div class="concept-label">특정 요소 추가 — 인페인팅 (DALL-E·Firefly)</div>
+            <div class="prompt-item" data-num="51" data-prompt="책상 위에 노트북 추가, 사실적인 사진 스타일 유지, 기존 조명과 일치"><span class="prompt-text"></span></div>
+            <div class="concept-label">시드값 고정 — 동일 스타일 반복 생성</div>
+            <div class="prompt-item" data-num="52" data-prompt="[이전 프롬프트] --seed [시드값] --ar 16:9"><span class="prompt-text"></span></div>
+            <div class="concept-label">참조 이미지 활용</div>
+            <div class="prompt-item" data-num="53" data-prompt="[이미지URL] [원하는 내용], same style --iw 1.5"><span class="prompt-text"></span></div>
+            <div class="concept-label">팀 공용 브랜드 스타일 프리셋</div>
+            <div class="prompt-item" data-num="54" data-prompt="[Brand Style: clean minimal, blue-white palette, studio lighting, photorealistic] + [개별 내용]"><span class="prompt-text"></span></div>
+            <div class="tip-box">파라미터 빠른참조 — --ar 16:9(슬라이드/썸네일) · 1:1(인스타) · 4:5(카드뉴스) · 9:16(포스터) · 3:2(인물) | --q 2(최고품질) · --v 7(최신) · --iw(참조강도) · --no(제외요소)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon camel">📑</div>
+          <div class="section-header-text">
+            <h2>Ⅳ. NotebookLM으로 보고서 자동화</h2>
+            <p>소스 필터링·PPT 설계·오디오 검증까지 환각 제로 보고서 워크플로우</p>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">소스 필터링</span> 파인만 + 에들러 통합 프롬프트 (&#x27;요약해줘&#x27; 대신 사용)</div>
+            <div class="prompt-item" data-num="55" data-prompt="업로드한 소스들을 분석해서,&#10;&#10;1. 여러 소스의 공통점&#10;2. 소스 간 차이점과 상충 의견&#10;3. 다른 소스에 없는 독창적 주장&#10;&#10;위 세 가지를 구분해서 정리하되,&#10;- 초등학생도 100% 이해할 수 있게&#10;- 각 주장에 구체적 근거 포함&#10;- 출처 [번호]를 명시해서&#10;&#10;정리해 줘."><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">PPT 목차 &amp; 스토리라인</span> 스튜디오 패널 → 슬라이드 자료 → 연필 아이콘 후 입력</div>
+            <div class="concept-label">슬라이드 생성 프롬프트 템플릿</div>
+            <div class="prompt-item" data-num="56" data-prompt="보고 대상: [C-레벨 임원 / 팀원 / 외부 고객] ([기술 배경 유무])&#10;분량: 총 [10]슬라이드 (표지 포함)&#10;톤앤매너: [격식체 / 캐주얼], 데이터 중심, 간결하게&#10;&#10;포함 항목:&#10;- 핵심 수치 [3]개 이상&#10;- 경쟁사 비교표&#10;- 실행 권고사항 (액션 아이템)&#10;&#10;제외 항목:&#10;- 기술 용어 최소화&#10;- 상세 데이터 테이블 제외"><span class="prompt-text"></span></div>
+            <div class="concept-label">Gemini Canvas 이식 프롬프트</div>
+            <div class="prompt-item" data-num="57" data-prompt="이 내용으로 Google Slides 형식의 발표 자료를 만들어 줘.&#10;[톤앤매너 및 디자인 요구사항 함께 명시]"><span class="prompt-text"></span></div>
+            <div class="tip-box">PATH: 스튜디오 패널 → 슬라이드 텍스트 전체 복사 → gemini.google.com → Canvas 모드 붙여넣기 + 위 지시 입력 → 우측 상단 Google Slides 내보내기 → 파일 → 다운로드 → PPTX</div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">오디오 검증</span> 오디오 오버뷰 → 연필 아이콘 후 롤플레잉 입력</div>
+            <div class="concept-label">오디오 오버뷰 롤플레잉 프롬프트</div>
+            <div class="prompt-item" data-num="58" data-prompt="역할 A (Host 1):&#10;- 보안과 리스크를 중시하는 CFO&#10;- 비용 효율성을 최우선으로 판단&#10;- 새로운 기술 도입에 신중한 입장&#10;&#10;역할 B (Host 2):&#10;- 시장 선점을 주장하는 열정적 팀장&#10;- 경쟁사 대비 빠른 실행을 강조&#10;- AI 도입의 기회를 강하게 어필&#10;&#10;지시사항:&#10;이 보고서 내용으로 두 역할이 치열하게 토론하는 형식으로 오디오를 생성해 줘."><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">액션 플랜</span> 바로 쓰는 첫 질문</div>
+            <div class="concept-label">노트북 개설 후 첫 질문</div>
+            <div class="prompt-item" data-num="59" data-prompt="공통점, 차이점, 독창적 주장을 구분해 초등학생도 이해할 수 있게 정리해 줘."><span class="prompt-text"></span></div>
+            <div class="tip-box">소스 우선순위: 파일명 앞에 !파일명.pdf(1순위) · #파일명.pdf(2순위) · 파일명.pdf(일반). 소스 패널 체크박스로 관련 없는 소스를 해제하면 더 타겟팅된 인사이트.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon camel">🔎</div>
+          <div class="section-header-text">
+            <h2>Ⅴ. 생성형 AI 통합 리서치</h2>
+            <p>기업·산업 분석부터 멀티 AI 교차 검증, 딥 리서치까지</p>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">기업·산업 분석</span> 공시자료·어닝콜·증권사 리포트를 소스로 업로드 후 입력</div>
+            <div class="concept-label">경제적 해자 분석</div>
+            <div class="prompt-item" data-num="60" data-prompt="버핏 스타일의 경제적 해자를 분석해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">재무 트렌드 표</div>
+            <div class="prompt-item" data-num="61" data-prompt="최근 3년 매출·영업이익 트렌드 표로 정리해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">리스크 요약</div>
+            <div class="prompt-item" data-num="62" data-prompt="주요 리스크 요인 3가지 요약해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">경쟁사 비교</div>
+            <div class="prompt-item" data-num="63" data-prompt="경쟁사 3사 강점 비교표 만들어줘"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">멀티 AI 비교 검토</span> 바로 쓰는 5가지 프롬프트</div>
+            <div class="concept-label">요약·정리</div>
+            <div class="prompt-item" data-num="64" data-prompt="업로드한 자료들을 바탕으로 핵심 주장을 3가지로 요약하고,&#10;각 주장의 근거를 자료에서 직접 인용해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">비교 분석</div>
+            <div class="prompt-item" data-num="65" data-prompt="A와 B의 공통점 2가지와 차이점 3가지를 표 형태로 정리해줘. 각 항목에 출처를 명시해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">반론 생성</div>
+            <div class="prompt-item" data-num="66" data-prompt="이 분석에서 가장 취약한 논리를 3가지 찾아서, 각각 반박 논거와 함께 정리해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">실행 계획</div>
+            <div class="prompt-item" data-num="67" data-prompt="이 내용을 실무에 적용한다면 지금 당장 실행할 수 있는 액션 3가지를 구체적 기한과 함께 제시해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">쉬운 설명</div>
+            <div class="prompt-item" data-num="68" data-prompt="이 내용을 업계 지식이 전혀 없는 사람도 이해할 수 있게, 비유와 예시를 들어 3문단으로 설명해줘"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">애들러·파인만 통합</span> 여러 AI 결과물 교차 검증</div>
+            <div class="prompt-item" data-num="69" data-prompt="각 자료의 공통점과 차이점을 구분하고, 독창적 주장과 근거를 찾아 초등학생도 100% 이해할 수 있게 정리해줘"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">오디오 오버뷰 롤플레잉</span> 경영진 예상 질문 시뮬레이션</div>
+            <div class="prompt-item" data-num="70" data-prompt="역할 A (Host 1):&#10;- 리스크를 중시하는 임원&#10;- 시장 진입 전 규제 리스크와 자본 효율성을 먼저 검토&#10;- 새로운 기술 도입에 신중한 입장&#10;&#10;역할 B (Host 2):&#10;- 시장 선점을 주장하는 열정적 팀장&#10;- 경쟁사 대비 빠른 실행을 강조&#10;- 기회비용이 리스크보다 크다는 입장&#10;&#10;지시사항:&#10;이 보고서 내용으로 두 역할이 치열하게 토론하는 형식으로 오디오를 생성해 줘."><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">딥 리서치</span> ChatGPT·Gemini 딥 리서치 기능 선택 후 입력</div>
+            <div class="concept-label">시장 트렌드 분석</div>
+            <div class="prompt-item" data-num="71" data-prompt="내가 관심 있는 산업의 최신 트렌드와 주요 플레이어를 분석해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">직접 입력 예시</div>
+            <div class="prompt-item" data-num="72" data-prompt="국내 AI 스타트업 시장 현황과 주요 플레이어 경쟁 구도를 분석해줘"><span class="prompt-text"></span></div>
+            <div class="tip-box">3대 AI 역할 분담 — ChatGPT(아이디어·딥리서치) · Claude(문서구조·코딩·긴 텍스트) · NotebookLM(환각 제로 팩트 추출) · Gemini Canvas(PPT·문서 변환). 최강 조합: NotebookLM → Gemini Canvas → Claude.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon camel">📊</div>
+          <div class="section-header-text">
+            <h2>Ⅵ. 생성형 AI 엑셀 데이터 분석</h2>
+            <p>데이터 정제·시각화·VBA 자동화 + 아이디룩 EDI 보고서 실전 케이스</p>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">기본 분석 프롬프트</span> 데이터를 붙여넣은 뒤 입력</div>
+            <div class="concept-label">기본 분석 공식</div>
+            <div class="prompt-item" data-num="73" data-prompt="[역할] 너는 데이터 분석 전문가야.&#10;[데이터] 아래 엑셀 데이터를 분석해줘.&#10;&#10;[출력 형식]&#10;- 매출 / 성장률 / 영업이익률 테이블&#10;- 핵심 변곡점 3가지 (수치 근거 포함)&#10;- 한 줄 경영진 요약&#10;&#10;[조건]&#10;- 표는 마크다운 형식&#10;- 숫자는 반드시 단위 포함 (억원, %)&#10;- 결론을 먼저, 근거는 뒤에 배치"><span class="prompt-text"></span></div>
+            <div class="concept-label">구체적 지시 — 데이터 표 추출</div>
+            <div class="prompt-item" data-num="74" data-prompt="매출, 성장률, 영업이익률을 테이블로 정리하고, 수치가 급변한 핵심 변곡점 3가지를 분석해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">경영진 요약</div>
+            <div class="prompt-item" data-num="75" data-prompt="너는 CFO 보좌 역할이야.&#10;이 데이터에서 경영진에게 즉시 보고 가능한 3줄 요약을 만들어줘."><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">반복 업무 자동화</span> 빠른 활용 예시</div>
+            <div class="concept-label">데이터 분류</div>
+            <div class="prompt-item" data-num="76" data-prompt="카테고리 A/B/C로 나눠줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">중복 제거·정제</div>
+            <div class="prompt-item" data-num="77" data-prompt="중복값 제거하고 빈 행 삭제해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">수식 자동 생성</div>
+            <div class="prompt-item" data-num="78" data-prompt="B열 기준 C열 값 찾아오는 수식 만들어줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">피벗·요약 리포트</div>
+            <div class="prompt-item" data-num="79" data-prompt="월별 매출 피벗 만들어줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">임원 보고용 슬라이드 기획</div>
+            <div class="prompt-item" data-num="80" data-prompt="임원 보고용으로 결론을 먼저 배치하고, 데이터 근거를 3가지로 압축해서 슬라이드를 기획해줘."><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">시각화 — Gemini Canvas</span> 인터랙티브 차트</div>
+            <div class="concept-label">인터랙티브 대시보드 생성</div>
+            <div class="prompt-item" data-num="81" data-prompt="아래 JSON 데이터를 활용하여 HTML + JavaScript로 인터랙티브 대시보드를 만들어줘.&#10;&#10;[요구사항]&#10;- Chart.js 라이브러리 사용&#10;- 막대 + 꺾은선 복합 차트&#10;- 클릭 시 상세 데이터 툴팁 표시&#10;- 반응형 레이아웃 적용&#10;&#10;[데이터]&#10;{ &quot;labels&quot;: [&quot;1분기&quot;,&quot;2분기&quot;,&quot;3분기&quot;],&#10;  &quot;매출&quot;: [1200, 1450, 1680],&#10;  &quot;영업이익률&quot;: [12.3, 14.1, 16.8] }"><span class="prompt-text"></span></div>
+            <div class="concept-label">차트 유형 변경</div>
+            <div class="prompt-item" data-num="82" data-prompt="막대 그래프를 꺾은선 그래프로 바꿔줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">브랜드 색상 변경</div>
+            <div class="prompt-item" data-num="83" data-prompt="색상을 브랜드 컬러로 변경해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">차트 추천</div>
+            <div class="prompt-item" data-num="84" data-prompt="이 데이터의 목적은 비교/추세/구성 중 무엇인지 판단하고, 가장 적합한 차트 유형과 이유를 알려줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">시각화 완전 공식 (ROLE·DATA·PURPOSE·FORMAT)</div>
+            <div class="prompt-item" data-num="85" data-prompt="[ROLE]&#10;너는 데이터 시각화 전문가야.&#10;&#10;[DATA]&#10;컬럼: [점포명, 브랜드, 당년매출, 전년매출]&#10;행수: 약 [50]행 / 단위: [천원]&#10;&#10;[PURPOSE]&#10;목적: [점포별 브랜드 매출 비교 (순위 파악)]&#10;&#10;[CHART TYPE]&#10;[가로 막대 차트 (내림차순 정렬)]&#10;[자사 브랜드는 파란색, 타사는 회색]&#10;&#10;[FORMAT]&#10;Chart.js HTML 코드로 출력해줘. 클릭 시 상세 툴팁 표시 포함."><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">VBA 자동화</span> 매크로 생성 &amp; 에러 수정</div>
+            <div class="concept-label">VBA 매크로 생성</div>
+            <div class="prompt-item" data-num="86" data-prompt="엑셀에서 [A·B열 중복값 제거 후 피벗 생성]하는 VBA 매크로 코드를 만들어줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">에러 트러블슈팅 — 치트키</div>
+            <div class="prompt-item" data-num="87" data-prompt="[에러 메시지 전체 붙여넣기]&#10;이 에러 고쳐줘"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge gray">실전 케이스 — EDI 보고서 자동화</span> Step 1~4를 반드시 같은 대화창에서 이어서 진행</div>
+            <div class="concept-label">Step 1 — 파일 구조 파악 (Claude에 엑셀 첨부)</div>
+            <div class="prompt-item" data-num="88" data-prompt="첨부한 엑셀 파일에는 시트가 6개야:&#10;롯데 / 현대26년 / 현대25년 / 신세계 / 갤러리아 / AK플라자&#10;&#10;각 시트별로 아래를 파악해줘:&#10;1. 실제 데이터가 몇 행부터 시작하는지&#10;2. 점포명이 있는 컬럼명 또는 위치&#10;3. 브랜드명이 있는 컬럼명 또는 위치&#10;4. 당년 매출이 있는 컬럼명 또는 위치&#10;5. 전년 매출이 있는 컬럼명 또는 위치&#10;6. 제거해야 할 불필요한 행 패턴 (소계, 합계, 헤더 반복 등)"><span class="prompt-text"></span></div>
+            <div class="concept-label">Step 2 — 6개 시트 일괄 정제</div>
+            <div class="prompt-item" data-num="89" data-prompt="파악한 구조대로 6개 시트를 모두 아래 통일된 형식으로 정제해줘:&#10;| 유통사 | 점포명 | 브랜드명 | 당년매출(원) | 전년매출(원) |&#10;&#10;[시트별 주의사항]&#10;- 롯데: '브랜드 소계' 행 전부 제거&#10;- 현대: 하이픈 뒤 이름만 추출, 26년=당년 / 25년=전년 합치기&#10;- 신세계: '합계'·'소계' 행 전부 제거, 점포명 대괄호 코드 제거&#10;- 갤러리아: 기준=당년, 비교=전년, 품번계·브랜드계 행 제거&#10;- AK: 총매출·전년매출 쉼표 제거 후 숫자 변환&#10;&#10;완료 후 당년매출 내림차순 정렬"><span class="prompt-text"></span></div>
+            <div class="concept-label">Step 3 — 보고서 양식 자동 완성</div>
+            <div class="prompt-item" data-num="90" data-prompt="위에서 정제한 표에 3가지 추가해줘:&#10;&#10;1. 신장률 컬럼 추가&#10;   공식: 전년=0 또는 빈칸이면 '신규'&#10;   그 외: IFERROR((당년-전년)/전년*100, '신규')&#10;&#10;2. 자사여부 컬럼 추가 (1=자사, 0=타사)&#10;   자사 브랜드 목록:&#10;   [쉐르, A.P.C., 미즈이로인드, 베르니스, MSGM, 기비, 키이스, 일레븐티, A.P.C.GOLF]&#10;   ※ 브랜드명 대소문자·띄어쓰기 완전 일치 필수&#10;&#10;3. 최종 컬럼 순서:&#10;   유통사|점포|브랜드|당년|전년|신장률|자사여부&#10;&#10;4. 당년매출 내림차순 정렬 유지&#10;5. 숫자는 천단위 구분기호 없이 출력"><span class="prompt-text"></span></div>
+            <div class="concept-label">Step 4 — 순위 변동 표기</div>
+            <div class="prompt-item" data-num="91" data-prompt="이전 순위 데이터와 현재 정제 결과를 비교해서 각 브랜드·점포별 순위 변동을 계산해줘.&#10;&#10;표기 방식:&#10;- 순위 올랐으면: +[변동수] (예: +2)&#10;- 순위 내렸으면: -[변동수] (예: -1)&#10;- 신규 진입: NEW&#10;- 이전 미집계: -"><span class="prompt-text"></span></div>
+            <div class="tip-box">매월 재사용: 파일만 교체 후 Step 1~4 프롬프트를 순서대로 복붙 → 담당자당 약 5분으로 보고서 완성. 브랜드 추가 시 Step 3 자사 브랜드 목록만 수정.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon camel">💻</div>
+          <div class="section-header-text">
+            <h2>Ⅶ. 생성형 AI로 HTML 시각화 결과 만들기</h2>
+            <p>인터랙티브 대시보드 생성부터 디자인 고도화·배포까지</p>
+          </div>
+        </div>
+        <div class="section-body">
+            <div class="tip-box">Claude / ChatGPT / Gemini 모두 동일하게 사용 가능. [ ] 안의 내용을 본인 상황에 맞게 변경.</div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">인터랙티브 차트 생성</span> Role → Context → Output 3단계</div>
+            <div class="prompt-item" data-num="92" data-prompt="[역할 정의]&#10;너는 10년 차 수석 데이터 시각화 전문가이자 프론트엔드 개발자야.&#10;&#10;[데이터 및 요구사항]&#10;[여기에 CSV 데이터 또는 표 데이터를 붙여넣기]&#10;1. 핵심 인사이트 3가지 도출&#10;2. 마우스 오버 툴팁 포함&#10;3. 화이트 모던 테마&#10;&#10;[출력 형태]&#10;HTML + CSS + JS 포함된 '단일 HTML 파일'로 출력. 코드 블록 안에 담아줘.&#10;// 라이브러리: Chart.js 또는 Plotly.js 사용"><span class="prompt-text"></span></div>
+          </div>
+          <div class="prompt-container">
+            <div class="prompt-note"><span class="badge">디자인 고도화</span> 실습 1 코드를 이어받아 같은 대화창에서 입력</div>
+            <div class="concept-label">옵션 A — 다크모드 적용</div>
+            <div class="prompt-item" data-num="93" data-prompt="위 코드를 다크모드로 변경해줘.&#10;- 배경색: #121212 (차콜)&#10;- 포인트 색상: 네온 블루, 보라 계열&#10;- 미래지향적 디자인 스타일 유지&#10;- 단일 HTML 파일로 다시 출력해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">옵션 B — 반응형 + KPI 카드 추가</div>
+            <div class="prompt-item" data-num="94" data-prompt="위 코드에 아래 두 가지를 추가해줘.&#10;&#10;1. 반응형 레이아웃&#10;   - CSS Media Query 적용&#10;   - 모바일(768px 이하)에서 차트가 세로 정렬되도록&#10;&#10;2. KPI 요약 카드 3개&#10;   - 화면 상단 가로 배치&#10;   - 항목: [매출 총합 / 성장률 / 기타 핵심 수치]&#10;   - CSS Grid 레이아웃 사용&#10;&#10;단일 HTML 파일로 다시 출력해줘"><span class="prompt-text"></span></div>
+            <div class="concept-label">추가 개선 — 툴팁 커스터마이징</div>
+            <div class="prompt-item" data-num="95" data-prompt="마우스 오버 시 툴팁에 아래 정보가 함께 표시되도록 수정해줘.&#10;- 수치 단위 표기 (예: 1,200만 원, 12.3%)&#10;- 전년 대비 증감 정보&#10;- Chart.js tooltip 옵션으로 구현&#10;단일 HTML 파일로 다시 출력해줘"><span class="prompt-text"></span></div>
+            <div class="tip-box">배포 3분 완성: ① HTML 전체 복사 → ② codepen.io에서 렌더링 확인 → ③ index.html로 저장 후 netlify.com/drop 에 드래그&amp;드롭 → 고유 URL 자동 발급 → ④ 단톡방·패들렛 공유.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      I.D. LOOK LTD. · 생성형 AI 실무 프롬프트 툴킷 · 총 95개 프롬프트 — 프롬프트를 클릭하면 복사됩니다.
+    </footer>
+
+    <div class="toast" id="toast">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+      <span id="toastText">클립보드에 복사되었습니다!</span>
+    </div>
+
+    <script>
+      var copySvg = '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      var checkSvg = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      document.querySelectorAll(".prompt-item").forEach(function (item) {
+        var num = document.createElement("span");
+        num.className = "prompt-num";
+        var promptNo = item.getAttribute("data-num");
+        num.textContent = promptNo ? promptNo : "-";
+        item.insertBefore(num, item.firstChild);
+        var textEl = item.querySelector(".prompt-text");
+        if (textEl && item.dataset.prompt) { textEl.textContent = item.dataset.prompt; }
+        var ci = document.createElement("span");
+        ci.className = "copy-indicator";
+        ci.innerHTML = copySvg + checkSvg;
+        item.appendChild(ci);
+      });
+      function fallbackCopy(text) {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.style.cssText = "position:fixed;left:-9999px;top:-9999px";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta); return ok;
+      }
+      function doCopy(text, cb) {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(cb).catch(function () { if (fallbackCopy(text)) cb(); });
+        } else { if (fallbackCopy(text)) cb(); }
+      }
+      document.addEventListener("click", function (e) {
+        var item = e.target.closest(".prompt-item");
+        if (!item) return;
+        var text = item.getAttribute("data-prompt");
+        if (!text) return;
+        doCopy(text, function () {
+          item.classList.add("copied");
+          item.classList.remove("just-copied");
+          void item.offsetWidth;
+          item.classList.add("just-copied");
+          showToast("클립보드에 복사되었습니다!");
+        });
+      });
+      var toastTimer;
+      function showToast(msg) {
+        var toast = document.getElementById("toast");
+        document.getElementById("toastText").textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2000);
+      }
+    </script>
+  </body>
+</html>
